@@ -1,175 +1,51 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-public class TaskManager {
-    private HashMap<Integer, Task> tasks = new HashMap<>();
-    private HashMap<Integer, Subtask> subtasks = new HashMap<>();
-    private HashMap<Integer, Epic> epics = new HashMap<>();
-    private int nextId;
+public interface TaskManager {
 
+    List<Task> getHistory();
 
     //методы для задач
-    public HashMap<Integer, Task> getTasks() {
-        return tasks;
-    }
+    HashMap<Integer, Task> getTasks();
 
-    public int addNewTask(Task task) {
-        nextId++;
-        tasks.put(nextId, task);
-        task.setId(nextId);
-        System.out.println("Задача " + task.getName() + " успешно добавлена.");
-        return nextId;
-    }
+    int addNewTask(Task task);
 
-    public Task getTaskById(int id) {
-        if (tasks.containsKey(id)) {
-            return tasks.get(id);
-        }
-        System.out.println("Такой задачи нет.");
-        return null;
-    }
+    Task getTaskById(int id);
 
-    public void updateTask(Task task) {
-        if (!tasks.containsKey(task.getId())) {
-            System.out.println("Такой задачи нет. Сначала добавьте её.");
-        } else {
-            tasks.put(task.getId(), task);
-            System.out.println("Задача " + task.getName() + " успешно обновлена.");
-        }
-    }
+    void updateTask(Task task);
 
-    public void deleteTaskById(int id) {
-        if (!tasks.containsKey(id)) {
-            System.out.println("Такой задачи нет. Сначала добавьте её.");
-        } else {
-            tasks.remove(id);
-            System.out.println("Задача успешно удалена.");
-        }
-    }
+    void deleteTaskById(int id);
 
-    public void deleteAllTasks() {
-        tasks.clear();
-        System.out.println("Все задачи удалены.");
-    }
+    void deleteAllTasks();
 
     //методы для подзадач
-    public HashMap<Integer, Subtask> getSubtasks() {
-        return subtasks;
-    }
+    HashMap<Integer, Subtask> getSubtasks();
 
-    public void deleteAllSubtasks() {
-        subtasks.clear();
-    }
+    void deleteAllSubtasks();
 
-    public void deleteSubtasksByEpicId(int id) {
-        if (!epics.containsKey(id)) {
-            System.out.println("Такого эпика нет.");
-        }
-        ArrayList<Subtask> subtasksInEpic = getSubtasksByEpicId(id);
-        subtasksInEpic.clear();
-        updateEpic(epics.get(id));
-        System.out.println("Подзадачи эпика успешно удалены.");
-    }
+    void deleteSubtasksByEpicId(int id);
 
-    public Subtask getSubtaskById(int id) {
-        if (subtasks.containsKey(id)) {
-            return subtasks.get(id);
-        }
-        System.out.println("Такой подзадачи нет.");
-        return null;
-    }
+    Subtask getSubtaskById(int id);
 
-    public int addNewSubtask(Subtask subtask) {
-        nextId++;
-        subtasks.put(nextId, subtask);
-        subtask.setId(nextId);
-        Epic epic = epics.get(subtask.getEpicId());
-        ArrayList<Subtask> list = epic.getSubtasks();
-        list.add(subtask);
-        updateEpic(epic);
-        System.out.println("Подзадача " + subtask.getName() + " успешно добавлена.");
-        return nextId;
-    }
+    int addNewSubtask(Subtask subtask);
 
-    public void updateSubtask(Subtask subtask) {
-        if (!subtasks.containsKey(subtask.getId())) {
-            System.out.println("Такой подзадачи нет. Сначала добавьте её.");
-        } else {
-            subtasks.put(subtask.getId(), subtask);
-            Epic epic = epics.get(subtask.getEpicId());
-            updateEpic(epic);
-            System.out.println("Подадача " + subtask.getName() + " успешно обновлена.");
-        }
-    }
+    void updateSubtask(Subtask subtask);
 
-    public void deleteSubtaskById(int id) {
-        if (!subtasks.containsKey(id)) {
-            System.out.println("Такой подзадачи нет. Сначала добавьте её.");
-        } else {
-            Subtask subtask = getSubtaskById(id);
-            Epic epic = epics.get(subtask.getEpicId());
-            ArrayList<Subtask> list = epic.getSubtasks();
-            list.remove(subtask);
-            updateEpic(epic);
-            subtasks.remove(id);
-            System.out.println("Подзадача успешно удалена.");
-        }
-    }
+    void deleteSubtaskById(int id);
 
     //методы для эпиков
-    public HashMap<Integer, Epic> getEpics() {
-        return epics;
-    }
+    HashMap<Integer, Epic> getEpics();
 
-    public void deleteAllEpics() {
-        deleteAllSubtasks();
-        epics.clear();
-        System.out.println("Все эпики удалены.");
-    }
+    void deleteAllEpics();
 
-    public Epic getEpicById(int id) {
-        if (epics.containsKey(id)) {
-            return epics.get(id);
-        }
-        System.out.println("Такого эпика нет.");
-        return null;
-    }
+    Epic getEpicById(int id);
 
-    public int addNewEpic(Epic epic) {
-        nextId++;
-        epics.put(nextId, epic);
-        epic.setId(nextId);
-        System.out.println("Эпик " + epic.getName() + " успешно добавлен.");
-        return nextId;
-    }
+    int addNewEpic(Epic epic);
 
-    public ArrayList<Subtask> getSubtasksByEpicId(int id) {
-        if (!epics.containsKey(id)) {
-            System.out.println("Такого эпика нет.");
-            return null;
-        }
-        Epic epic = epics.get(id);
-        return epic.getSubtasks();
-    }
+    ArrayList<Subtask> getSubtasksByEpicId(int id);
 
-    public void updateEpic(Epic epic) {
-        if (!epics.containsKey(epic.getId())) {
-            System.out.println("Такого эпика нет.");
-        } else {
-            epic.setStatus(epic.checkStatus());
-            epics.put(epic.getId(), epic);
-            System.out.println("Эпик " + epic.getName() + " успешно обновлен.");
-        }
-    }
+    void updateEpic(Epic epic);
 
-    public void deleteEpicById(int id) {
-        if (!epics.containsKey(id)) {
-            System.out.println("Такого эпика нет.");
-        } else {
-            deleteSubtasksByEpicId(id);
-            epics.remove(id);
-            System.out.println("Эпик успешно удалён.");
-        }
-    }
-
+    void deleteEpicById(int id);
 }

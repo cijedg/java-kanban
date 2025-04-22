@@ -1,3 +1,7 @@
+import history.HistoryManager;
+import history.InMemoryHistoryManager;
+import model.Status;
+import model.Task;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

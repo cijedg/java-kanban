@@ -1,3 +1,7 @@
+import history.HistoryManager;
+import manager.Managers;
+import manager.TaskManager;
+import model.Task;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -9,7 +13,7 @@ class ManagersTest {
     @Test
     void shouldCreateCorrectTaskManagerReadyForWork() {
         TaskManager taskManager = Managers.getDefault();
-        assertNotNull(taskManager, "Экземпляр TaskManager не должен быть null");
+        assertNotNull(taskManager, "Экземпляр manager.TaskManager не должен быть null");
         Task otherTask = new Task("na", "desc");
 
         int taskId = taskManager.addNewTask(otherTask);
@@ -21,7 +25,7 @@ class ManagersTest {
     @Test
     void shouldCreateCorrectHistoryManagerReadyForWork() {
         HistoryManager historyManager = Managers.getDefaultHistory();
-        assertNotNull(historyManager, "Экземпляр HistoryManager не должен быть null");
+        assertNotNull(historyManager, "Экземпляр history.HistoryManager не должен быть null");
         Task otherTask = new Task("na", "desc");
         historyManager.add(otherTask);
         List<Task> history = historyManager.getHistory();

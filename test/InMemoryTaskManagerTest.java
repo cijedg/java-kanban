@@ -1,6 +1,11 @@
+import manager.Managers;
+import manager.TaskManager;
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,7 +23,7 @@ class InMemoryTaskManagerTest {
         assertNotNull(savedTask, "Задача не найдена.");
         assertEquals(task, savedTask, "Задачи не совпадают.");
 
-        final HashMap<Integer, Task> tasks = taskManager.getTasks();
+        final Map<Integer, Task> tasks = taskManager.getTasks();
 
         assertNotNull(tasks, "Задачи не возвращаются.");
         assertEquals(1, tasks.size(), "Неверное количество задач.");
@@ -33,7 +38,7 @@ class InMemoryTaskManagerTest {
         Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task);
         otherTask.setId(epicId);
         int result = taskManager.addNewSubtask(otherTask);
-        assertEquals(-1, result, "Epic нельзя добавить в самого себя в виде подзадачи");
+        assertEquals(-1, result, "model.Epic нельзя добавить в самого себя в виде подзадачи");
         Epic savedEpic = taskManager.getEpicById(epicId);
         assertTrue(savedEpic.getSubtasks().isEmpty(), "Список подзадач эпика должен остаться пустым");
 
@@ -46,7 +51,7 @@ class InMemoryTaskManagerTest {
         Subtask subtask = new Subtask("na", "desc", Status.IN_PROGRESS, task);
         taskManager.addNewSubtask(subtask);
         subtask.setEpicId(subtask.getId());
-        assertNotEquals(subtask.getId(), subtask.getEpicId(), "Subtask нельзя сделать своим же эпиком");
+        assertNotEquals(subtask.getId(), subtask.getEpicId(), "model.Subtask нельзя сделать своим же эпиком");
         assertEquals(task.getId(), subtask.getEpicId(), "Подзадача должна ссылаться на исходный эпик");
     }
 
@@ -54,19 +59,19 @@ class InMemoryTaskManagerTest {
     public void shouldAddAllTypesOfTasksAndFindThemById() {
         Task task = new Task("Call mommy", "give a call", Status.NEW);
         int taskId = taskManager.addNewTask(task);
-        HashMap<Integer, Task> tasks = taskManager.getTasks();
+        Map<Integer, Task> tasks = taskManager.getTasks();
         assertNotNull(tasks, "Список задач не должен быть пустым");
         assertEquals(task, tasks.get(taskId), "Найденная по id задача должна совпадать с добавленной");
 
         Epic epic = new Epic("paper", "hmm");
         int epicId = taskManager.addNewEpic(epic);
-        HashMap<Integer, Epic> epics = taskManager.getEpics();
+        Map<Integer, Epic> epics = taskManager.getEpics();
         assertNotNull(epics, "Список эпиков не должен быть пустым");
         assertEquals(epic, epics.get(epicId), "Найденный по id эпик должен совпадать с добавленным");
 
         Subtask subtask1 = new Subtask("annotation", "write paper", Status.NEW, epic);
         int subtaskId = taskManager.addNewSubtask(subtask1);
-        HashMap<Integer, Subtask> subtasks = taskManager.getSubtasks();
+        Map<Integer, Subtask> subtasks = taskManager.getSubtasks();
         assertNotNull(subtasks, "Список подзадач не должен быть пустым");
         assertEquals(subtask1, subtasks.get(subtaskId), "Найденная по id подзадача должна совпадать с добавленной");
     }

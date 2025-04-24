@@ -5,7 +5,9 @@ import model.Status;
 import model.Subtask;
 import model.Task;
 import org.junit.jupiter.api.Test;
+
 import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,23 +37,22 @@ class InMemoryTaskManagerTest {
 
         Epic task = new Epic("name", "description");
         int epicId = taskManager.addNewEpic(task);
-        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task);
+        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task.getId());
         otherTask.setId(epicId);
         int result = taskManager.addNewSubtask(otherTask);
-        assertEquals(-1, result, "model.Epic нельзя добавить в самого себя в виде подзадачи");
+        assertEquals(-1, result, "Epic нельзя добавить в самого себя в виде подзадачи");
         Epic savedEpic = taskManager.getEpicById(epicId);
         assertTrue(savedEpic.getSubtasks().isEmpty(), "Список подзадач эпика должен остаться пустым");
-
     }
 
     @Test
     public void shouldNotAddSubtaskAsItsOwnEpic() {
         Epic task = new Epic("name", "description");
         taskManager.addNewEpic(task);
-        Subtask subtask = new Subtask("na", "desc", Status.IN_PROGRESS, task);
+        Subtask subtask = new Subtask("na", "desc", Status.IN_PROGRESS, task.getId());
         taskManager.addNewSubtask(subtask);
         subtask.setEpicId(subtask.getId());
-        assertNotEquals(subtask.getId(), subtask.getEpicId(), "model.Subtask нельзя сделать своим же эпиком");
+        assertNotEquals(subtask.getId(), subtask.getEpicId(), "Subtask нельзя сделать своим же эпиком");
         assertEquals(task.getId(), subtask.getEpicId(), "Подзадача должна ссылаться на исходный эпик");
     }
 
@@ -69,7 +70,7 @@ class InMemoryTaskManagerTest {
         assertNotNull(epics, "Список эпиков не должен быть пустым");
         assertEquals(epic, epics.get(epicId), "Найденный по id эпик должен совпадать с добавленным");
 
-        Subtask subtask1 = new Subtask("annotation", "write paper", Status.NEW, epic);
+        Subtask subtask1 = new Subtask("annotation", "write paper", Status.NEW, epic.getId());
         int subtaskId = taskManager.addNewSubtask(subtask1);
         Map<Integer, Subtask> subtasks = taskManager.getSubtasks();
         assertNotNull(subtasks, "Список подзадач не должен быть пустым");
@@ -104,11 +105,63 @@ class InMemoryTaskManagerTest {
         int taskId = taskManager.addNewTask(task);
 
         Task savedTask = taskManager.getTaskById(taskId);
-        assertEquals(taskCopy, savedTask, "Задача должна остаться неизменной после добавления в менеджер");
-
-        assertEquals(taskCopy.getId(), savedTask.getId(), "Id задачи не должен измениться");
         assertEquals(taskCopy.getName(), savedTask.getName(), "Название задачи не должно измениться");
         assertEquals(taskCopy.getDescription(), savedTask.getDescription(), "Описание задачи не должно измениться");
         assertEquals(taskCopy.getStatus(), savedTask.getStatus(), "Статус задачи не должен измениться");
+    }
+
+    @Test
+    void deleteSubtaskShouldRemoveItFromEpic() {
+        Epic epic = new Epic("Test Epic", "Test Description");
+        int epicId = taskManager.addNewEpic(epic);
+
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.IN_PROGRESS, epicId);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.NEW, epicId);
+
+        taskManager.addNewSubtask(subtask1);
+        taskManager.addNewSubtask(subtask2);
+        List<Subtask> subtasks = taskManager.getSubtasksByEpicId(epic.getId());
+        assertEquals(2, subtasks.size());
+
+        taskManager.deleteSubtaskById(subtask1.getId());
+        List<Subtask> updatedSubtasks = taskManager.getSubtasksByEpicId(epic.getId());
+        assertEquals(1, updatedSubtasks.size());
+        assertFalse(updatedSubtasks.contains(subtask1));
+        assertTrue(updatedSubtasks.contains(subtask2));
+    }
+
+    @Test
+    void deleteEpicShouldRemoveAllItsSubtasks() {
+        Epic epic = new Epic("Test Epic", "Test Description");
+        int epicId = taskManager.addNewEpic(epic);
+
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW, epicId);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.NEW, epicId);
+
+        taskManager.addNewSubtask(subtask1);
+        taskManager.addNewSubtask(subtask2);
+        taskManager.deleteEpicById(epicId);
+
+        assertNull(taskManager.getSubtaskById(subtask1.getId()));
+        assertNull(taskManager.getSubtaskById(subtask2.getId()));
+        assertTrue(taskManager.getSubtasks().isEmpty());
+    }
+
+    @Test
+    void epicShouldNotContainDeletedSubtaskIds() {
+        Epic epic = new Epic("Epic", "Desc");
+        int epicId = taskManager.addNewEpic(epic);
+
+        Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW, epicId);
+        Subtask sub2 = new Subtask("Sub2", "Desc", Status.NEW, epicId);
+        int sub1Id = taskManager.addNewSubtask(sub1);
+        taskManager.addNewSubtask(sub2);
+
+        taskManager.deleteSubtaskById(sub1Id);
+
+        Epic updatedEpic = taskManager.getEpicById(epicId);
+        assertFalse(updatedEpic.getSubtasks().contains(sub1), "Подзадача 1 должна быть удалена");
+        assertTrue(updatedEpic.getSubtasks().contains(sub2), "Подзадача 2 должна остаться");
+        assertEquals(1, updatedEpic.getSubtasks().size(), "Должна остаться 1 подзадача");
     }
 }

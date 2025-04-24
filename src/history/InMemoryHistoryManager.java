@@ -61,6 +61,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
         return tasks;
     }
+
     private void removeNode(Node node) {
 
         if (node.prev == null) { //значит node это head

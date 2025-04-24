@@ -7,7 +7,8 @@ public class Node {
     public Node next;
 
     Node(Task task) {
-        this.task = task;
+        this.task = new Task(task.getName(), task.getDescription(), task.getStatus());
+        this.task.setId(task.getId());
         this.next = null;
         this.prev = null;
     }

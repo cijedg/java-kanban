@@ -1,4 +1,3 @@
-
 import manager.InMemoryTaskManager;
 import manager.TaskManager;
 import model.Epic;
@@ -6,7 +5,7 @@ import model.Status;
 import model.Subtask;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SubtaskTest {
 
@@ -22,7 +21,7 @@ class SubtaskTest {
         final int taskId = taskManager.addNewSubtask(task);
         taskManager.addNewSubtask(otherTask);
         otherTask.setId(taskId);
-        assertEquals(task, otherTask,"Задачи не совпадают.");
+        assertEquals(task, otherTask, "Задачи не совпадают.");
     }
 
 }

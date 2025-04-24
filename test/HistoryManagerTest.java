@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class HistoryManagerTest {
     private final HistoryManager historyManager = new InMemoryHistoryManager();
@@ -58,7 +59,7 @@ class HistoryManagerTest {
         historyManager.add(task2);
         historyManager.add(task1);
         List<Task> history = new ArrayList<>(historyManager.getHistory());
-        assertEquals(2,history.size(), "Размер списка должен быть равен количеству задач в истории");
+        assertEquals(2, history.size(), "Размер списка должен быть равен количеству задач в истории");
         assertEquals(task1, history.get(1), "Задачи должны храниться в истории в порядке добавления");
         assertEquals(task2, history.get(0), "Задачи должны храниться в истории в порядке добавления");
     }

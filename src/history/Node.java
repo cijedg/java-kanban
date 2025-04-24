@@ -1,4 +1,5 @@
 package history;
+
 import model.Task;
 
 public class Node {

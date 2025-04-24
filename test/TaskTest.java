@@ -1,4 +1,3 @@
-
 import manager.InMemoryTaskManager;
 import manager.TaskManager;
 import model.Task;
@@ -18,7 +17,7 @@ class TaskTest {
         final int taskId = taskManager.addNewTask(task);
         taskManager.addNewTask(otherTask);
         otherTask.setId(taskId);
-        assertEquals(task, otherTask,"Задачи не совпадают.");
+        assertEquals(task, otherTask, "Задачи не совпадают.");
     }
-  
+
 }

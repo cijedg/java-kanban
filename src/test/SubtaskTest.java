@@ -8,8 +8,6 @@ import model.Subtask;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class SubtaskTest {
 
     private TaskManager taskManager = new InMemoryTaskManager();

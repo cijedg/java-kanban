@@ -3,12 +3,18 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+import static model.TaskType.EPIC;
+
 public class Epic extends Task {
     private List<Subtask> subtasks = new ArrayList<>();
 
-    public Epic(String name, String description) {
-        super(name, description);
-        super.setStatus(checkStatus());
+    public Epic(String name, String description, Status status) {
+        super(name, description, status, TaskType.EPIC);
+
+    }
+
+    Epic(int id, String name, Status status, String description) {
+        super(id, name, status, description, TaskType.EPIC);
     }
 
     public List<Subtask> getSubtasks() {
@@ -17,7 +23,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "model.Epic{" +
+        return "Epic{" +
                 "name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", id=" + getId() +
@@ -46,5 +52,19 @@ public class Epic extends Task {
         return true;
     }
 
+    @Override
+    public String toString(Task task) {
+        if (task == null) {
+            return "";
+        }
+        return String.join(",",
+                String.valueOf(getId()),
+                String.valueOf(EPIC),
+                getName(),
+                String.valueOf(getStatus()),
+                getDescription(),
+                ""
+        );
+    }
 
 }

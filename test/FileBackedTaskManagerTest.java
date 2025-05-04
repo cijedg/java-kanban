@@ -1,5 +1,3 @@
-package test;
-
 import exceptions.ManagerSaveException;
 import manager.FileBackedTaskManager;
 import manager.Managers;
@@ -24,6 +22,11 @@ class FileBackedTaskManagerTest {
         tempFile = Files.createTempFile("tasks", ".csv");
     }
 
+    @AfterAll
+    static void tearDown() throws IOException {
+        Files.deleteIfExists(tempFile);
+    }
+
     @BeforeEach
     void initManager() {
         manager = Managers.getDefaultSaving(tempFile);
@@ -32,11 +35,6 @@ class FileBackedTaskManagerTest {
     @AfterEach
     void clearFile() throws IOException {
         Files.writeString(tempFile, "");
-    }
-
-    @AfterAll
-    static void tearDown() throws IOException {
-        Files.deleteIfExists(tempFile);
     }
 
     @Test

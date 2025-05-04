@@ -1,5 +1,3 @@
-package test;
-
 import manager.Managers;
 import manager.TaskManager;
 import model.*;
@@ -81,7 +79,7 @@ class InMemoryTaskManagerTest {
         taskWithAssignedId.setId(100);
         int assignedId = taskManager.addNewTask(taskWithAssignedId);
 
-        Task taskWithGeneratedId = new Task("name", "desc",Status.NEW, TaskType.TASK);
+        Task taskWithGeneratedId = new Task("name", "desc", Status.NEW, TaskType.TASK);
         int generatedId = taskManager.addNewTask(taskWithGeneratedId);
 
         Assertions.assertNotEquals(assignedId, generatedId, "Id задач не должны совпадать");

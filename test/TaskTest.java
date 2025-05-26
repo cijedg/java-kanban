@@ -1,10 +1,10 @@
 import manager.InMemoryTaskManager;
 import manager.TaskManager;
+import model.Status;
 import model.Task;
+import model.TaskType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 class TaskTest {
 
@@ -12,12 +12,12 @@ class TaskTest {
 
     @Test
     public void shouldBeEqualIfTwoTasksWithSameIdAreEqual() {
-        Task task = new Task("name", "description");
-        Task otherTask = new Task("na", "desc");
+        Task task = new Task("name", "description", Status.NEW, TaskType.TASK);
+        Task otherTask = new Task("na", "desc", Status.NEW, TaskType.TASK);
         final int taskId = taskManager.addNewTask(task);
         taskManager.addNewTask(otherTask);
         otherTask.setId(taskId);
-        assertEquals(task, otherTask, "Задачи не совпадают.");
+        Assertions.assertEquals(task, otherTask, "Задачи не совпадают.");
     }
 
 }

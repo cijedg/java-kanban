@@ -4,6 +4,7 @@ import history.HistoryManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
+import model.TaskType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -110,12 +111,6 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask.getId() == subtask.getEpicId()) {
             return -1;
         }
-        subtask.setId(generateId());
-//        int subtaskId = subtask.getId();
-//        if (subtasks.containsKey(subtaskId)) {
-//            subtaskId = ++nextId;
-//            subtask.setId(subtaskId);
-//        }
         subtasks.put(subtask.getId(), subtask);
         Epic epic = epics.get(subtask.getEpicId());
         if (epic != null) {
@@ -175,14 +170,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addNewEpic(Epic epic) {
-//        int epicId = epic.getId();
-//
-//        if (epics.containsKey(epicId)) {
-//            epicId = ++nextId;
-//            epic.setId(epicId);
-//        }
         epic.setId(generateId());
-        epic.setId(epic.getId());
         epics.put(epic.getId(), epic);
         return epic.getId();
     }
@@ -226,12 +214,11 @@ public class InMemoryTaskManager implements TaskManager {
             return copy;
         } else if (task instanceof Epic) {
             Epic epic = (Epic) task;
-            Epic copy = new Epic(epic.getName(), epic.getDescription());
+            Epic copy = new Epic(epic.getName(), epic.getDescription(), epic.getStatus());
             copy.setId(task.getId());
-            copy.setStatus(epic.getStatus());
             return copy;
         } else {
-            Task copy = new Task(task.getName(), task.getDescription(), task.getStatus());
+            Task copy = new Task(task.getName(), task.getDescription(), task.getStatus(), TaskType.TASK);
             copy.setId(task.getId());
             return copy;
         }

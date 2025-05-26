@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface TaskManager {
-
     List<Task> getHistory();
 
     //методы для задач

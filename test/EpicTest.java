@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,8 +59,7 @@ class EpicTest {
         taskManager.addNewSubtask(sub2);
 
         assertEquals(LocalDateTime.of(2025, 5, 2, 16, 3), epic.getStartTime());
-        assertEquals(LocalDateTime.of(2026, 5, 2, 17, 3), Optional.ofNullable(epic.getEndTime())
-                .get());
+        assertEquals(LocalDateTime.of(2026, 5, 2, 17, 3), epic.getEndTime());
     }
 
     @Test

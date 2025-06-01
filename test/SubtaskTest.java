@@ -6,6 +6,11 @@ import model.Subtask;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class SubtaskTest {
 
     private TaskManager taskManager = new InMemoryTaskManager();
@@ -21,6 +26,15 @@ class SubtaskTest {
         taskManager.addNewSubtask(otherTask);
         otherTask.setId(taskId);
         Assertions.assertEquals(task, otherTask, "Задачи не совпадают.");
+    }
+
+    @Test
+    public void shouldCalculateEndTimeRight() {
+        Subtask task = new Subtask("name", "description", Status.NEW, 1);
+        task.setStartTime(LocalDateTime.of(2025, 3, 3, 22, 0));
+        task.setDuration(Duration.ofHours(1));
+
+        assertEquals(LocalDateTime.of(2025, 3, 3, 23, 0), task.getEndTime());
     }
 
 }

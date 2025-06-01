@@ -1,20 +1,24 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import static model.TaskType.EPIC;
+import java.util.Objects;
 
 public class Epic extends Task {
-    private List<Subtask> subtasks = new ArrayList<>();
+    private final List<Subtask> subtasks = new ArrayList<>();
+    LocalDateTime endTime;
 
     public Epic(String name, String description, Status status) {
         super(name, description, status, TaskType.EPIC);
-
+        updateTimeFields();
     }
 
-    Epic(int id, String name, Status status, String description) {
-        super(id, name, status, description, TaskType.EPIC);
+    Epic(int id, String name, Status status, String description, LocalDateTime startTime, Duration duration, LocalDateTime endTime) {
+        super(id, name, status, description, TaskType.EPIC, startTime, duration);
+        this.endTime = endTime;
+        updateTimeFields();
     }
 
     public List<Subtask> getSubtasks() {
@@ -52,19 +56,34 @@ public class Epic extends Task {
         return true;
     }
 
-    @Override
-    public String toString(Task task) {
-        if (task == null) {
-            return "";
+    public void updateTimeFields() {
+        if (subtasks.isEmpty()) {
+            setStartTime(null);
+            endTime = null;
+            setDuration(Duration.ZERO);
+            return;
         }
-        return String.join(",",
-                String.valueOf(getId()),
-                String.valueOf(EPIC),
-                getName(),
-                String.valueOf(getStatus()),
-                getDescription(),
-                ""
+
+        setStartTime(
+                subtasks.stream()
+                        .map(Subtask::getStartTime)
+                        .filter(Objects::nonNull)
+                        .min(LocalDateTime::compareTo)
+                        .orElse(null)
         );
+
+        endTime = subtasks.stream()
+                .map(Subtask::getEndTime)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
+        setDuration(getStartTime() == null ? Duration.ZERO : Duration.between(getStartTime(), endTime));
     }
 
+    @Override
+    public LocalDateTime getEndTime() {
+        updateTimeFields();
+        return endTime;
+    }
 }

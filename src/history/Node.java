@@ -10,6 +10,8 @@ public class Node {
     Node(Task task) {
         this.task = new Task(task.getName(), task.getDescription(), task.getStatus(), task.getType());
         this.task.setId(task.getId());
+        this.task.setStartTime(task.getStartTime());
+        this.task.setDuration(task.getDuration());
         this.next = null;
         this.prev = null;
     }

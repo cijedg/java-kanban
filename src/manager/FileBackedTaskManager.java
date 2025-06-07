@@ -12,7 +12,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     Path filename;
@@ -25,23 +26,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private void save() {
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(
                 filename,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.TRUNCATE_EXISTING)
+                StandardCharsets.UTF_8)
         ) {
-            bufferedWriter.write("id,type,name,status,description,epic" + "\n");
+            bufferedWriter.write("id,type,name,status,description,epic,startTime,duration" + "\n");
             for (Task task : getTasks().values()) {
-                bufferedWriter.write(task.toString(task) + "\n");
+                bufferedWriter.write(toString(task) + "\n");
             }
             for (Subtask subtask : getSubtasks().values()) {
-                bufferedWriter.write(subtask.toString(subtask) + "\n");
+                bufferedWriter.write(toString(subtask) + "\n");
             }
+
             for (Epic epic : getEpics().values()) {
-                bufferedWriter.write(epic.toString(epic) + "\n");
+                bufferedWriter.write(toString(epic) + "\n");
             }
         } catch (IOException exp) {
             throw new ManagerSaveException(exp.getMessage());
         }
-
     }
 
     @Override
@@ -129,6 +129,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public static FileBackedTaskManager loadFromFile(File file) {
         Path path = file.toPath();
         FileBackedTaskManager manager = new FileBackedTaskManager(path);
+        List<Subtask> subtasks = new ArrayList<>();
         try {
             String content = Files.readString(path, StandardCharsets.UTF_8);
             String[] lines = content.split("\n");
@@ -140,13 +141,31 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 Task task = Task.fromString(line);
                 switch (task.getType()) {
                     case TASK -> manager.addNewTask(task);
-                    case SUBTASK -> manager.addNewSubtask((Subtask) task);
+                    case SUBTASK -> subtasks.add((Subtask) task);
                     case EPIC -> manager.addNewEpic((Epic) task);
                 }
             }
+            subtasks.stream()
+                    .forEach(manager::addNewSubtask);
         } catch (IOException e) {
             throw new ManagerLoadException(e.getMessage());
         }
         return manager;
+    }
+
+    String toString(Task task) {
+        if (task == null) {
+            return "";
+        }
+        return String.join(",",
+                String.valueOf(task.getId()),
+                String.valueOf(task.getType()),
+                task.getName(),
+                String.valueOf(task.getStatus()),
+                task.getDescription(),
+                task instanceof Subtask ? String.valueOf(((Subtask) task).getEpicId()) : "",
+                task.getStartTime() != null ? task.getStartTime().toString() : "",
+                !task.getDuration().isZero() ? String.valueOf(task.getDuration().toMinutes()) : ""
+        );
     }
 }

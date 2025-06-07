@@ -1,27 +1,52 @@
 import history.HistoryManager;
-import history.InMemoryHistoryManager;
-import manager.InMemoryTaskManager;
+import manager.Managers;
 import manager.TaskManager;
-import model.Status;
-import model.Task;
-import model.TaskType;
+import model.*;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 class HistoryManagerTest {
-    private final HistoryManager historyManager = new InMemoryHistoryManager();
-    private final TaskManager taskManager = new InMemoryTaskManager();
+    private HistoryManager historyManager;
+    private TaskManager taskManager;
+
+    @BeforeEach
+    void initManagers() {
+        historyManager = Managers.getDefaultHistory();
+        taskManager = Managers.getDefault();
+    }
 
     @Test
-    void add() {
+    void shouldReturnEmptyListIfNoHistoryWasSaved() {
         Task task = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
-        historyManager.add(task);
+        taskManager.addNewTask(task);
+        Epic task1 = new Epic("name", "description", Status.NEW);
+        taskManager.addNewEpic(task1);
+        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task1.getId());
+        taskManager.addNewSubtask(otherTask);
         final List<Task> history = historyManager.getHistory();
-        Assertions.assertNotNull(history, "История не пустая.");
-        Assertions.assertEquals(1, history.size(), "История не пустая.");
+
+        Assertions.assertEquals(0, history.size(), "История не должна быть пустой.");
+    }
+
+    @Test
+    void shouldAddAllTypesOfTasksToHistory() {
+        Task task = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
+        task.setId(4);
+        historyManager.add(task);
+        Epic task1 = new Epic("name", "description", Status.NEW);
+        task.setId(5);
+        historyManager.add(task1);
+        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task1.getId());
+        otherTask.setId(6);
+        historyManager.add(otherTask);
+        final List<Task> history = historyManager.getHistory();
+
+        Assertions.assertNotNull(history, "История не должна быть пустой.");
+        Assertions.assertEquals(3, history.size(), "История не должна быть пустой.");
     }
 
     @Test
@@ -34,14 +59,12 @@ class HistoryManagerTest {
         task.setDescription("give");
         task.setStatus(Status.IN_PROGRESS);
 
-
         List<Task> history = historyManager.getHistory();
         Assertions.assertEquals(1, history.size(), "История должна содержать одну задачу");
 
         Task savedTask = history.getFirst();
         Assertions.assertEquals(task, savedTask, "Задача должна оставать той же при сравнении через equals");
         //сравнение по id должно показать что задача одна и та же
-
 
         Assertions.assertEquals("Call mommy", savedTask.getName(), "Название задачи в истории не должно измениться");
         Assertions.assertEquals("give a call", savedTask.getDescription(), "Описание задачи в истории не должно измениться");
@@ -68,8 +91,13 @@ class HistoryManagerTest {
         Task task = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
         historyManager.add(task);
         historyManager.add(task);
+        Task task2 = new Task("Task 2", "Desc 2", Status.IN_PROGRESS, TaskType.TASK);
+        taskManager.addNewTask(task2);
+        taskManager.updateTask(task2);
+        taskManager.getTaskById(task2.getId());
 
         Assertions.assertEquals(1, historyManager.getHistory().size());
+        Assertions.assertEquals(1, taskManager.getHistory().size());
     }
 
     @Test

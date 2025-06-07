@@ -1,7 +1,7 @@
+import exceptions.ManagerLoadException;
 import exceptions.ManagerSaveException;
 import manager.FileBackedTaskManager;
 import manager.Managers;
-import manager.TaskManager;
 import model.*;
 import org.junit.jupiter.api.*;
 
@@ -9,27 +9,32 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     private static Path tempFile;
-    private TaskManager manager;
+
+    @Override
+    protected FileBackedTaskManager createManager() {
+        return Managers.getDefaultSaving(tempFile);
+    }
+
+    @BeforeEach
+    void setUp() {
+        manager = createManager();
+    }
 
     @BeforeAll
-    static void setUp() throws IOException {
+    static void initFile() throws IOException {
         tempFile = Files.createTempFile("tasks", ".csv");
     }
 
     @AfterAll
     static void tearDown() throws IOException {
         Files.deleteIfExists(tempFile);
-    }
-
-    @BeforeEach
-    void initManager() {
-        manager = Managers.getDefaultSaving(tempFile);
     }
 
     @AfterEach
@@ -50,7 +55,7 @@ class FileBackedTaskManagerTest {
         }
 
         assertEquals(1, lines.length, "Файл должен содержать только заголовок");
-        assertEquals("id,type,name,status,description,epic", lines[0], "Неверный формат заголовка");
+        assertEquals("id,type,name,status,description,epic,startTime,duration", lines[0], "Неверный формат заголовка");
     }
 
     @Test
@@ -62,28 +67,67 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void shouldSaveAllTypesOfTasks() {
-        Task task = new Task("Test addNewTask", "Test addNewTask description", Status.NEW, TaskType.TASK);
+    void shouldSaveAndLoadAllTaskFieldsCorrectly() {
+        LocalDateTime taskStartTime = LocalDateTime.of(2023, 1, 1, 10, 0);
+        Duration taskDuration = Duration.ofMinutes(45);
+
+        LocalDateTime subtaskStartTime = LocalDateTime.of(2023, 1, 1, 11, 0);
+        Duration subtaskDuration = Duration.ofMinutes(30);
+
+        Task task = new Task("Task", "Task description", Status.NEW, TaskType.TASK);
+        task.setStartTime(taskStartTime);
+        task.setDuration(taskDuration);
         manager.addNewTask(task);
-        Epic epic = new Epic("name", "description", Status.NEW);
+
+        Epic epic = new Epic("Epic", "Epic description", Status.NEW);
         manager.addNewEpic(epic);
-        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, epic.getId());
-        manager.addNewSubtask(otherTask);
 
-        String[] lines;
-        try {
-            String content = Files.readString(tempFile, StandardCharsets.UTF_8);
-            lines = content.split("\n");
-        } catch (IOException e) {
-            throw new ManagerSaveException(e.getMessage());
-        }
+        Subtask subtask = new Subtask("Subtask", "Subtask description", Status.IN_PROGRESS, epic.getId());
+        subtask.setStartTime(subtaskStartTime);
+        subtask.setDuration(subtaskDuration);
 
-        assertEquals(4, lines.length, "Файл должен содержать 4 строки: заголовок, задачу, эпик и подзадачу");
-        assertEquals("id,type,name,status,description,epic", lines[0], "Неверный формат заголовка");
-        assertEquals(task.toString(task), lines[1], "Неверный формат сохранения задачи");
-        assertEquals(epic.toString(epic), lines[3], "Неверный формат сохранения эпика");
-        assertEquals(otherTask.toString(otherTask), lines[2], "Неверный формат сохранения подзадачи");
+        manager.addNewSubtask(subtask);
+
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile.toFile());
+
+        assertEquals(1, loadedManager.getTasks().size());
+        assertEquals(1, loadedManager.getEpics().size());
+        assertEquals(1, loadedManager.getSubtasks().size());
+
+        Task loadedTask = loadedManager.getTaskById(task.getId());
+        assertNotNull(loadedTask);
+        assertEquals(task.getId(), loadedTask.getId());
+        assertEquals(task.getType(), loadedTask.getType());
+        assertEquals(task.getName(), loadedTask.getName());
+        assertEquals(task.getStatus(), loadedTask.getStatus());
+        assertEquals(task.getDescription(), loadedTask.getDescription());
+        assertEquals(task.getStartTime(), loadedTask.getStartTime());
+        assertEquals(task.getDuration(), loadedTask.getDuration());
+
+        Subtask loadedSubtask = loadedManager.getSubtaskById(subtask.getId());
+        assertNotNull(loadedSubtask);
+        assertEquals(subtask.getId(), loadedSubtask.getId());
+        assertEquals(subtask.getType(), loadedSubtask.getType());
+        assertEquals(subtask.getName(), loadedSubtask.getName());
+        assertEquals(subtask.getStatus(), loadedSubtask.getStatus());
+        assertEquals(subtask.getDescription(), loadedSubtask.getDescription());
+        assertEquals(subtask.getStartTime(), loadedSubtask.getStartTime());
+        assertEquals(subtask.getDuration(), loadedSubtask.getDuration());
+        assertEquals(subtask.getEpicId(), loadedSubtask.getEpicId());
+
+        Epic loadedEpic = loadedManager.getEpicById(epic.getId());
+        assertNotNull(loadedEpic);
+        assertEquals(epic.getId(), loadedEpic.getId());
+        assertEquals(epic.getType(), loadedEpic.getType());
+        assertEquals(epic.getName(), loadedEpic.getName());
+        assertEquals(epic.getStatus(), loadedEpic.getStatus());
+        assertEquals(epic.getDescription(), loadedEpic.getDescription());
+
+        assertEquals(subtaskStartTime, loadedEpic.getStartTime());
+        assertEquals(subtaskDuration, loadedEpic.getDuration());
+        assertEquals(subtaskStartTime.plus(subtaskDuration), loadedEpic.getEndTime());
     }
+
 
     @Test
     void shouldLoadAllTypesOfTasks() {
@@ -94,6 +138,7 @@ class FileBackedTaskManagerTest {
         Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, epic.getId());
         manager.addNewSubtask(otherTask);
 
+
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(FileBackedTaskManagerTest.tempFile.toFile());
 
         assertEquals(1, loadedManager.getTasks().size(), "Должна загрузиться одна задача");
@@ -102,6 +147,24 @@ class FileBackedTaskManagerTest {
         assertEquals(task, loadedManager.getTaskById(task.getId()), "Загруженная задача не совпадает с добавленной");
         assertEquals(otherTask, loadedManager.getSubtaskById(otherTask.getId()), "Загруженная подзадача не совпадает с добавленной");
         assertEquals(epic, loadedManager.getEpicById(epic.getId()), "Загруженный эпик не совпадает с добавленным");
+    }
+
+    @Test
+    void shouldThrowManagerLoadExceptionWhenFileDoesNotExist() {
+        Path nonExistingFile = Path.of("non_existing_file.csv");
+
+        assertThrows(ManagerLoadException.class,
+                () -> FileBackedTaskManager.loadFromFile(nonExistingFile.toFile()),
+                "Попытка загрузки из несуществующего файла должна вызывать исключение");
+    }
+
+    @Test
+    void shouldNotThrowManagerSaveExceptionWhenSavingToValidFile() {
+        Task task = new Task("Valid Task", "Description", Status.NEW, TaskType.TASK);
+
+        assertDoesNotThrow(
+                () -> manager.addNewTask(task),
+                "Корректная операция сохранения не должна вызывать исключений");
     }
 }
 

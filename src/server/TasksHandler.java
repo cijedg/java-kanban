@@ -63,11 +63,9 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
     private void handlePostTasks(HttpExchange httpExchange) throws IOException {
         String[] pathParts = httpExchange.getRequestURI().getPath().split("/");
         try {
-            //считываем входные данные и проверяем
             InputStream inputStream = httpExchange.getRequestBody();
             String body = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
             Task task = gson.fromJson(body, Task.class);
-            //создание новой задачи
             if (pathParts.length == 2) {
                 if (task.getName().isBlank() || task.getDescription().isBlank() ||
                         task.getName() == null || task.getDescription() == null) {

@@ -35,17 +35,14 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
         }
         String[] pathParts = httpExchange.getRequestURI().getPath().split("/");
         try {
-            //получение общего списка эпиков
             if (pathParts.length == 2) {
                 String response = gson.toJson(taskManager.getEpics().values());
                 sendText(httpExchange, response, 200);
-            } //получение эпика по айди
-            else if (pathParts.length == 3) {
+            } else if (pathParts.length == 3) {
                 int epicId = Integer.parseInt(pathParts[2]);
                 Epic epic = taskManager.getEpicById(epicId);
                 sendText(httpExchange, gson.toJson(epic), 200);
-            } //получение списка подзадач эпика по айди
-            else if (pathParts.length == 4 && pathParts[3].equals("subtasks")) {
+            } else if (pathParts.length == 4 && pathParts[3].equals("subtasks")) {
                 int epicId = Integer.parseInt(pathParts[2]);
                 String response = gson.toJson(taskManager.getEpicById(epicId).getSubtasks());
                 sendText(httpExchange, response, 200);

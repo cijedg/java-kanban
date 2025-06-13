@@ -7,11 +7,15 @@ import java.util.List;
 import java.util.Objects;
 
 public class Epic extends Task {
-    private final List<Subtask> subtasks = new ArrayList<>();
-    LocalDateTime endTime;
+    private List<Subtask> subtasks = new ArrayList<>();
+    private LocalDateTime endTime;
 
-    public Epic(String name, String description, Status status) {
-        super(name, description, status, TaskType.EPIC);
+    public Epic(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        super(name,
+                description,
+                status,
+                startTime,
+                duration);
         updateTimeFields();
     }
 
@@ -22,7 +26,9 @@ public class Epic extends Task {
     }
 
     public List<Subtask> getSubtasks() {
-        return subtasks;
+        return subtasks == null
+                ? subtasks = new ArrayList<>()
+                : subtasks;
     }
 
     @Override
@@ -33,11 +39,14 @@ public class Epic extends Task {
                 ", id=" + getId() +
                 ", status=" + getStatus() +
                 ", subtasks=" + subtasks +
+                ", startTime=" + getStartTime() + '\'' +
+                ", duration=" + getDuration() + '\'' +
+                ", endTime=" + getEndTime() + '\'' +
                 '}';
     }
 
     public Status checkStatus() {
-        if (subtasks.isEmpty() || isSameStatus(Status.NEW)) {
+        if (getSubtasks().isEmpty() || isSameStatus(Status.NEW)) {
             return Status.NEW;
         } else if (isSameStatus(Status.DONE)) {
             return Status.DONE;
@@ -48,16 +57,12 @@ public class Epic extends Task {
 
 
     private boolean isSameStatus(Status status) {
-        for (Subtask subtask : subtasks) {
-            if (subtask.getStatus() != status) {
-                return false;
-            }
-        }
-        return true;
+        return getSubtasks().stream()
+                .allMatch(subtask -> subtask.getStatus() == status);
     }
 
     public void updateTimeFields() {
-        if (subtasks.isEmpty()) {
+        if (getSubtasks().isEmpty()) {
             setStartTime(null);
             endTime = null;
             setDuration(Duration.ZERO);
@@ -83,7 +88,6 @@ public class Epic extends Task {
 
     @Override
     public LocalDateTime getEndTime() {
-        updateTimeFields();
         return endTime;
     }
 }

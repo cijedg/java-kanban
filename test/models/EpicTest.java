@@ -1,23 +1,33 @@
-import manager.InMemoryTaskManager;
+package models;
+
+import manager.Managers;
 import manager.TaskManager;
 import model.Epic;
 import model.Status;
 import model.Subtask;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Month;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class EpicTest {
 
-    private TaskManager taskManager = new InMemoryTaskManager();
+    private TaskManager taskManager;
+
+    @BeforeEach
+    void setUp() {
+        taskManager = Managers.getDefault();
+    }
 
     @Test
     public void shouldBeEqualIfTwoEpicsWithSameIdAreEqual() {
-        Epic task = new Epic("name", "description", Status.NEW);
-        Epic otherTask = new Epic("na", "desc", Status.NEW);
+        Epic task = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Epic otherTask = new Epic("na", "desc", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         final int taskId = taskManager.addNewEpic(task);
         taskManager.addNewEpic(otherTask);
         otherTask.setId(taskId);
@@ -26,11 +36,11 @@ class EpicTest {
 
     @Test
     public void durationShouldBeSumOfAllSubtasksDurations() {
-        Epic epic = new Epic("name", "description", Status.NEW);
+        Epic epic = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
 
         taskManager.addNewEpic(epic);
-        Subtask sub1 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId());
-        Subtask sub2 = new Subtask("name", "desc", Status.NEW, epic.getId());
+        Subtask sub1 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
+        Subtask sub2 = new Subtask("name", "desc", Status.NEW, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
         sub1.setStartTime(LocalDateTime.of(2025, 5, 2, 16, 3));
         sub2.setStartTime(LocalDateTime.of(2025, 5, 2, 17, 3));
 
@@ -46,10 +56,10 @@ class EpicTest {
 
     @Test
     public void ShouldHaveTheEarliestStartTimeAndTheLatestEndTime() {
-        Epic epic = new Epic("name", "description", Status.NEW);
+        Epic epic = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewEpic(epic);
-        Subtask sub1 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId());
-        Subtask sub2 = new Subtask("name", "desc", Status.NEW, epic.getId());
+        Subtask sub1 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
+        Subtask sub2 = new Subtask("name", "desc", Status.NEW, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
 
         sub1.setStartTime(LocalDateTime.of(2025, 5, 2, 16, 3));
         sub2.setStartTime(LocalDateTime.of(2026, 5, 2, 16, 3));
@@ -64,7 +74,7 @@ class EpicTest {
 
     @Test
     public void ShouldHaveNoTime() {
-        Epic epic = new Epic("name", "description", Status.NEW);
+        Epic epic = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
 
         assertNull(epic.getStartTime());
         assertNull(epic.getEndTime());
@@ -73,9 +83,9 @@ class EpicTest {
 
     @Test
     public void shouldHandleSubtaskWithNullStartTime() {
-        Epic epic = new Epic("name", "description", Status.NEW);
+        Epic epic = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewEpic(epic);
-        Subtask sub1 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId());
+        Subtask sub1 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
         sub1.setStartTime(null);
         taskManager.addNewSubtask(sub1);
 
@@ -88,17 +98,17 @@ class EpicTest {
 
     @Test
     void shouldUpdateTimeWhenSubtaskChanges() {
-        Epic epic = new Epic("Эпик", "Описание", Status.IN_PROGRESS);
+        Epic epic = new Epic("Эпик", "Описание", Status.IN_PROGRESS, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewEpic(epic);
-        Subtask subtask = new Subtask("Подзадача", "Описание", Status.NEW, epic.getId());
-        subtask.setStartTime(LocalDateTime.now());
+        Subtask subtask = new Subtask("Подзадача", "Описание", Status.NEW, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
+        subtask.setStartTime(LocalDateTime.of(2025, Month.APRIL, 4, 12, 15));
         subtask.setDuration(Duration.ofHours(1));
 
         taskManager.addNewSubtask(subtask);
-        LocalDateTime initialEndTime = epic.getEndTime();
 
         subtask.setDuration(Duration.ofHours(2));
-        assertNotEquals(initialEndTime, epic.getEndTime());
+        taskManager.updateSubtask(subtask);
+        LocalDateTime expectedEndTime = epic.getStartTime().plusHours(2);
+        assertEquals(expectedEndTime, epic.getEndTime());
     }
-
 }

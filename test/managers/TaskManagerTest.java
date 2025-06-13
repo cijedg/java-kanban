@@ -1,5 +1,10 @@
+package managers;
+
 import manager.TaskManager;
-import model.*;
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,7 +32,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void addNewTask() {
 
-        Task task = new Task("Test addNewTask", "Test addNewTask description", Status.NEW, TaskType.TASK);
+        Task task = new Task("Test addNewTask", "Test addNewTask description", Status.NEW, null, null);
         final int taskId = manager.addNewTask(task);
 
         final Task savedTask = manager.getTaskById(taskId);
@@ -43,19 +49,19 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldAddAllTypesOfTasksAndFindThemById() {
-        Task task = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
+        Task task = new Task("Call mommy", "give a call", Status.NEW, null, null);
         int taskId = manager.addNewTask(task);
         Map<Integer, Task> tasks = manager.getTasks();
         Assertions.assertNotNull(tasks, "Список задач не должен быть пустым");
         assertEquals(task, tasks.get(taskId), "Найденная по id задача должна совпадать с добавленной");
 
-        Epic epic = new Epic("paper", "hmm", Status.NEW);
+        Epic epic = new Epic("paper", "hmm", Status.NEW, null, null);
         int epicId = manager.addNewEpic(epic);
         Map<Integer, Epic> epics = manager.getEpics();
         Assertions.assertNotNull(epics, "Список эпиков не должен быть пустым");
         assertEquals(epic, epics.get(epicId), "Найденный по id эпик должен совпадать с добавленным");
 
-        Subtask subtask1 = new Subtask("annotation", "write paper", Status.NEW, epic.getId());
+        Subtask subtask1 = new Subtask("annotation", "write paper", Status.NEW, epic.getId(), LocalDateTime.now(), Duration.ZERO);
         int subtaskId = manager.addNewSubtask(subtask1);
         Map<Integer, Subtask> subtasks = manager.getSubtasks();
         Assertions.assertNotNull(subtasks, "Список подзадач не должен быть пустым");
@@ -64,11 +70,11 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldHaveStatusNewIfAllSubtasksHaveStatusNew() {
-        Epic epic = new Epic("Эпик", "Описание", Status.NEW);
+        Epic epic = new Epic("Эпик", "Описание", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.addNewEpic(epic);
 
-        Subtask sub1 = new Subtask("name", "desc", Status.NEW, epic.getId());
-        Subtask sub2 = new Subtask("name", "desc", Status.NEW, epic.getId());
+        Subtask sub1 = new Subtask("name", "desc", Status.NEW, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
+        Subtask sub2 = new Subtask("name", "desc", Status.NEW, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
         manager.addNewSubtask(sub1);
         manager.addNewSubtask(sub2);
 
@@ -77,7 +83,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldHaveStatusNewIfHasNoSubtasks() {
-        Epic epic = new Epic("Эпик", "Описание", Status.IN_PROGRESS);
+        Epic epic = new Epic("Эпик", "Описание", Status.IN_PROGRESS, LocalDateTime.now(), Duration.ZERO);
         manager.addNewEpic(epic);
 
         assertEquals(Status.NEW, epic.getStatus());
@@ -85,11 +91,11 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldHaveStatusDoneIfAllSubtasksHaveStatusDone() {
-        Epic epic = new Epic("Эпик", "Описание", Status.IN_PROGRESS);
+        Epic epic = new Epic("Эпик", "Описание", Status.IN_PROGRESS, LocalDateTime.now(), Duration.ZERO);
         manager.addNewEpic(epic);
 
-        Subtask sub1 = new Subtask("name", "desc", Status.DONE, epic.getId());
-        Subtask sub2 = new Subtask("name", "desc", Status.DONE, epic.getId());
+        Subtask sub1 = new Subtask("name", "desc", Status.DONE, epic.getId(), LocalDateTime.now(), Duration.ZERO);
+        Subtask sub2 = new Subtask("name", "desc", Status.DONE, epic.getId(), LocalDateTime.now(), Duration.ZERO);
         manager.addNewSubtask(sub1);
         manager.addNewSubtask(sub2);
 
@@ -98,12 +104,12 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldHaveStatusInProgressIfAllSubtasksHaveDifferentStatus() {
-        Epic epic = new Epic("Эпик", "Описание", Status.DONE);
+        Epic epic = new Epic("Эпик", "Описание", Status.DONE, LocalDateTime.now(), Duration.ZERO);
         manager.addNewEpic(epic);
 
-        Subtask sub1 = new Subtask("name", "desc", Status.NEW, epic.getId());
-        Subtask sub2 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId());
-        Subtask sub3 = new Subtask("name", "desc", Status.DONE, epic.getId());
+        Subtask sub1 = new Subtask("name", "desc", Status.NEW, epic.getId(), LocalDateTime.now(), Duration.ZERO);
+        Subtask sub2 = new Subtask("name", "desc", Status.IN_PROGRESS, epic.getId(), LocalDateTime.now(), Duration.ZERO);
+        Subtask sub3 = new Subtask("name", "desc", Status.DONE, epic.getId(), LocalDateTime.now(), Duration.ZERO);
         manager.addNewSubtask(sub1);
         manager.addNewSubtask(sub2);
         manager.addNewSubtask(sub3);
@@ -113,7 +119,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldSaveAndReturnDurationAndStartTime() {
-        Epic epic = new Epic("Epic", "Desc", Status.NEW);
+        Epic epic = new Epic("Epic", "Desc", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         epic.setStartTime(LocalDateTime.of(2025, 4, 6, 22, 0));
         epic.setDuration(Duration.ofMinutes(45));
 
@@ -126,11 +132,11 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void deleteSubtaskShouldRemoveItFromEpic() {
-        Epic epic = new Epic("Test Epic", "Test Description", Status.NEW);
+        Epic epic = new Epic("Test Epic", "Test Description", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int epicId = manager.addNewEpic(epic);
 
-        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.IN_PROGRESS, epicId);
-        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.NEW, epicId);
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.IN_PROGRESS, epicId, LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.NEW, epicId, LocalDateTime.now(), Duration.ZERO);
 
         manager.addNewSubtask(subtask1);
         manager.addNewSubtask(subtask2);
@@ -146,28 +152,28 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void deleteEpicShouldRemoveAllItsSubtasks() {
-        Epic epic = new Epic("Test Epic", "Test Description", Status.NEW);
+        Epic epic = new Epic("Test Epic", "Test Description", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int epicId = manager.addNewEpic(epic);
 
-        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW, epicId);
-        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.NEW, epicId);
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW, epicId, LocalDateTime.now(), Duration.ZERO);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.NEW, epicId, LocalDateTime.now(), Duration.ZERO);
 
         manager.addNewSubtask(subtask1);
         manager.addNewSubtask(subtask2);
         manager.deleteEpicById(epicId);
 
-        Assertions.assertNull(manager.getSubtaskById(subtask1.getId()));
-        Assertions.assertNull(manager.getSubtaskById(subtask2.getId()));
+        assertThrows(NoSuchElementException.class, () -> manager.getSubtaskById(subtask1.getId()), "При попытке получить удалённую задачу должно выбрасываться исключение");
+        assertThrows(NoSuchElementException.class, () -> manager.getSubtaskById(subtask2.getId()), "При попытке получить удалённую задачу должно выбрасываться исключение");
         Assertions.assertTrue(manager.getSubtasks().isEmpty());
     }
 
     @Test
     public void epicShouldNotContainDeletedSubtaskIds() {
-        Epic epic = new Epic("Epic", "Desc", Status.NEW);
+        Epic epic = new Epic("Epic", "Desc", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         int epicId = manager.addNewEpic(epic);
 
-        Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW, epicId);
-        Subtask sub2 = new Subtask("Sub2", "Desc", Status.NEW, epicId);
+        Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW, epicId, LocalDateTime.now(), Duration.ZERO);
+        Subtask sub2 = new Subtask("Sub2", "Desc", Status.NEW, epicId, LocalDateTime.now(), Duration.ZERO);
         int sub1Id = manager.addNewSubtask(sub1);
         manager.addNewSubtask(sub2);
 
@@ -181,9 +187,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldNotAddSubtaskAsItsOwnEpic() {
-        Epic task = new Epic("name", "description", Status.NEW);
+        Epic task = new Epic("name", "description", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         manager.addNewEpic(task);
-        Subtask subtask = new Subtask("na", "desc", Status.IN_PROGRESS, task.getId());
+        Subtask subtask = new Subtask("na", "desc", Status.IN_PROGRESS, task.getId(), LocalDateTime.now(), Duration.ZERO);
         manager.addNewSubtask(subtask);
         subtask.setEpicId(subtask.getId());
         Assertions.assertNotEquals(subtask.getId(), subtask.getEpicId(), "Subtask нельзя сделать своим же эпиком");
@@ -192,24 +198,24 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     public void shouldNotAddSubtaskWithoutExistingEpic() {
-        Subtask subtask = new Subtask("na", "desc", Status.IN_PROGRESS, -1);
-        manager.addNewSubtask(subtask);
+        Subtask subtask = new Subtask("na", "desc", Status.IN_PROGRESS, -1, LocalDateTime.now(), Duration.ZERO);
 
-        assertEquals(0, manager.getSubtasks().size());
+        assertThrows(IllegalArgumentException.class, () -> manager.addNewSubtask(subtask),
+                "Попытка добавить подзадачу с несуществующим эпиком должна вызывать исключение");
 
-        subtask = new Subtask("na", "desc", Status.IN_PROGRESS, 999);
-        manager.addNewSubtask(subtask);
+        Subtask subtask2 = new Subtask("na", "desc", Status.IN_PROGRESS, 999, LocalDateTime.now(), Duration.ZERO);
 
-        assertEquals(0, manager.getSubtasks().size());
+        assertThrows(IllegalArgumentException.class, () -> manager.addNewSubtask(subtask2),
+                "Попытка добавить подзадачу с несуществующим эпиком должна вызывать исключение");
     }
 
     @Test
     public void shouldNotAddTasksWithOverlappingTime() {
-        Task task = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
+        Task task = new Task("Call mommy", "give a call", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         task.setStartTime(LocalDateTime.of(2025, Month.APRIL, 25, 10, 15));
         task.setDuration(Duration.ofMinutes(45));
 
-        Task task1 = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
+        Task task1 = new Task("Call mommy", "give a call", Status.NEW, LocalDateTime.now(), Duration.ZERO);
         task1.setStartTime(LocalDateTime.of(2025, Month.APRIL, 25, 10, 35));
         task1.setDuration(Duration.ofMinutes(5));
 

@@ -1,9 +1,18 @@
+package managers;
+
 import exceptions.ManagerLoadException;
 import exceptions.ManagerSaveException;
 import manager.FileBackedTaskManager;
 import manager.Managers;
-import model.*;
-import org.junit.jupiter.api.*;
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,20 +21,14 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     private static Path tempFile;
-
-    @Override
-    protected FileBackedTaskManager createManager() {
-        return Managers.getDefaultSaving(tempFile);
-    }
-
-    @BeforeEach
-    void setUp() {
-        manager = createManager();
-    }
 
     @BeforeAll
     static void initFile() throws IOException {
@@ -35,6 +38,16 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     @AfterAll
     static void tearDown() throws IOException {
         Files.deleteIfExists(tempFile);
+    }
+
+    @Override
+    protected FileBackedTaskManager createManager() {
+        return Managers.getDefaultSaving(tempFile);
+    }
+
+    @BeforeEach
+    void setUp() {
+        manager = createManager();
     }
 
     @AfterEach
@@ -74,18 +87,13 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         LocalDateTime subtaskStartTime = LocalDateTime.of(2023, 1, 1, 11, 0);
         Duration subtaskDuration = Duration.ofMinutes(30);
 
-        Task task = new Task("Task", "Task description", Status.NEW, TaskType.TASK);
-        task.setStartTime(taskStartTime);
-        task.setDuration(taskDuration);
+        Task task = new Task("Task", "Task description", Status.NEW, taskStartTime, taskDuration);
         manager.addNewTask(task);
 
-        Epic epic = new Epic("Epic", "Epic description", Status.NEW);
+        Epic epic = new Epic("Epic", "Epic description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         manager.addNewEpic(epic);
 
-        Subtask subtask = new Subtask("Subtask", "Subtask description", Status.IN_PROGRESS, epic.getId());
-        subtask.setStartTime(subtaskStartTime);
-        subtask.setDuration(subtaskDuration);
-
+        Subtask subtask = new Subtask("Subtask", "Subtask description", Status.IN_PROGRESS, epic.getId(), subtaskStartTime, subtaskDuration);
         manager.addNewSubtask(subtask);
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile.toFile());
@@ -131,11 +139,11 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     @Test
     void shouldLoadAllTypesOfTasks() {
-        Task task = new Task("Test addNewTask", "Test addNewTask description", Status.NEW, TaskType.TASK);
+        Task task = new Task("Test addNewTask", "Test addNewTask description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         manager.addNewTask(task);
-        Epic epic = new Epic("name", "description", Status.NEW);
+        Epic epic = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         manager.addNewEpic(epic);
-        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, epic.getId());
+        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, epic.getId(), LocalDateTime.MIN, Duration.ZERO);
         manager.addNewSubtask(otherTask);
 
 
@@ -160,7 +168,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     @Test
     void shouldNotThrowManagerSaveExceptionWhenSavingToValidFile() {
-        Task task = new Task("Valid Task", "Description", Status.NEW, TaskType.TASK);
+        Task task = new Task("Valid Task", "Description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
 
         assertDoesNotThrow(
                 () -> manager.addNewTask(task),

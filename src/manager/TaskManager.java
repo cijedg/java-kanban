@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface TaskManager {
+    void addToPrioritizedTasks(Task task);
+
+    List<Task> getPrioritizedTasks();
+
     List<Task> getHistory();
 
     //методы для задач

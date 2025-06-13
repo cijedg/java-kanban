@@ -74,8 +74,7 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                 }
                 taskManager.addNewSubtask(subtask);
                 sendText(httpExchange, "Добавлена подзадача с id = " + subtask.getId(), 201);
-            } //обновление существующей подзадачи
-            else if (pathParts.length == 3) {
+            } else if (pathParts.length == 3) {
                 int subtaskId = Integer.parseInt(pathParts[2]);
                 if (subtask.getId() != subtaskId) {
                     sendBadRequest(httpExchange, "Id в URL и теле запроса не совпадают");

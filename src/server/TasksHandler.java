@@ -76,8 +76,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 }
                 taskManager.addNewTask(task);
                 sendText(httpExchange, "Добавлена задача с id = " + task.getId(), 201);
-            } //обновление существующей задачи
-            else if (pathParts.length == 3) {
+            } else if (pathParts.length == 3) {
                 int taskId = Integer.parseInt(pathParts[2]);
                 if (task.getId() != taskId) {
                     sendBadRequest(httpExchange, "Id в URL и теле запроса не совпадают");

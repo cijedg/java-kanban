@@ -94,11 +94,9 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
             sendNotAcceptable(httpExchange, e.getMessage());
         } catch (NoSuchElementException e) {
             sendNotFound(httpExchange, e.getMessage());
-            e.printStackTrace();
         } catch (IllegalArgumentException e) {
             sendBadRequest(httpExchange, e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             sendInternalError(httpExchange);
         }
     }

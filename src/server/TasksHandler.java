@@ -99,7 +99,6 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         } catch (NoSuchElementException e) {
             sendNotFound(httpExchange, e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             sendInternalError(httpExchange);
         }
     }

@@ -90,7 +90,6 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
         } catch (IllegalArgumentException e) {
             sendBadRequest(httpExchange, e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             sendInternalError(httpExchange);
         }
     }

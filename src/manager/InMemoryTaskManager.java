@@ -52,9 +52,7 @@ public class InMemoryTaskManager implements TaskManager {
     //методы для задач
     @Override
     public Map<Integer, Task> getTasks() {
-        return tasks.isEmpty()
-                ? Map.of()
-                : Map.copyOf(tasks);
+        return tasks;
     }
 
     @Override

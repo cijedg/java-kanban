@@ -35,7 +35,8 @@ class BaseApiTest {
     protected HttpResponse<String> sendRequest(String method, String path, String body) throws IOException, InterruptedException {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + path))
-                .header("Accept", "application/json");
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json");
         switch (method.toUpperCase()) {
             case "GET" -> builder.GET();
             case "POST" -> builder.POST(HttpRequest.BodyPublishers.ofString(body));

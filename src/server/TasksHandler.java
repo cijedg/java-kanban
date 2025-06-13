@@ -36,12 +36,10 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         }
         String[] pathParts = httpExchange.getRequestURI().getPath().split("/");
         try {
-            //получение общего списка задач
             if (pathParts.length == 2) {
                 String response = gson.toJson(taskManager.getTasks().values());
                 sendText(httpExchange, response, 200);
-            } //получение задачи по айди
-            else if (pathParts.length == 3) {
+            } else if (pathParts.length == 3) {
                 int taskId = Integer.parseInt(pathParts[2]);
                 Task task = taskManager.getTaskById(taskId);
                 sendText(httpExchange, gson.toJson(task), 200);
@@ -63,11 +61,9 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
     private void handlePostTasks(HttpExchange httpExchange) throws IOException {
         String[] pathParts = httpExchange.getRequestURI().getPath().split("/");
         try {
-            //считываем входные данные и проверяем
             InputStream inputStream = httpExchange.getRequestBody();
             String body = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
             Task task = gson.fromJson(body, Task.class);
-            //создание новой задачи
             if (pathParts.length == 2) {
                 if (task.getName().isBlank() || task.getDescription().isBlank() ||
                         task.getName() == null || task.getDescription() == null) {

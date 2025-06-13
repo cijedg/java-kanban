@@ -36,12 +36,10 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
         }
         String[] pathParts = httpExchange.getRequestURI().getPath().split("/");
         try {
-            //получение общего списка подзадач
             if (pathParts.length == 2) {
                 String response = gson.toJson(taskManager.getSubtasks().values());
                 sendText(httpExchange, response, 200);
-            } //получение подзадачи по айди
-            else if (pathParts.length == 3) {
+            } else if (pathParts.length == 3) {
                 int subtaskId = Integer.parseInt(pathParts[2]);
                 Subtask subtask = taskManager.getSubtaskById(subtaskId);
                 sendText(httpExchange, gson.toJson(subtask), 200);
@@ -62,11 +60,9 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
     private void handlePostSubtasks(HttpExchange httpExchange) throws IOException {
         String[] pathParts = httpExchange.getRequestURI().getPath().split("/");
         try {
-            //считываем входные данные и проверяем
             InputStream inputStream = httpExchange.getRequestBody();
             String body = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
             Subtask subtask = gson.fromJson(body, Subtask.class);
-            //создание новой подзадачи
             if (pathParts.length == 2) {
                 if (subtask.getName().isBlank() || subtask.getDescription().isBlank()) {
                     sendBadRequest(httpExchange, "Заполните необходимые поля для создания подзадачи");

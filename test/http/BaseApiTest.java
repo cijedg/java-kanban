@@ -21,6 +21,7 @@ class BaseApiTest {
     @BeforeEach
     protected void setUp() throws IOException {
         manager.deleteAllTasks();
+        manager.deleteAllSubtasks();
         manager.deleteAllEpics();
         server.start();
     }

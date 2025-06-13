@@ -8,10 +8,7 @@ public class Node {
     public Node next;
 
     Node(Task task) {
-        this.task = new Task(task.getName(), task.getDescription(), task.getStatus(), task.getType());
-        this.task.setId(task.getId());
-        this.task.setStartTime(task.getStartTime());
-        this.task.setDuration(task.getDuration());
+        this.task = new Task(task.getId(), task.getName(), task.getStatus(), task.getDescription(), task.getType(), task.getStartTime(), task.getDuration());
         this.next = null;
         this.prev = null;
     }

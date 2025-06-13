@@ -1,11 +1,18 @@
+package managers;
+
 import history.HistoryManager;
 import manager.Managers;
 import manager.TaskManager;
-import model.*;
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,11 +28,11 @@ class HistoryManagerTest {
 
     @Test
     void shouldReturnEmptyListIfNoHistoryWasSaved() {
-        Task task = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
+        Task task = new Task("Call mommy", "give a call", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewTask(task);
-        Epic task1 = new Epic("name", "description", Status.NEW);
+        Epic task1 = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewEpic(task1);
-        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task1.getId());
+        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task1.getId(), LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewSubtask(otherTask);
         final List<Task> history = historyManager.getHistory();
 
@@ -34,13 +41,13 @@ class HistoryManagerTest {
 
     @Test
     void shouldAddAllTypesOfTasksToHistory() {
-        Task task = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
+        Task task = new Task("Call mommy", "give a call", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         task.setId(4);
         historyManager.add(task);
-        Epic task1 = new Epic("name", "description", Status.NEW);
+        Epic task1 = new Epic("name", "description", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         task.setId(5);
         historyManager.add(task1);
-        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task1.getId());
+        Subtask otherTask = new Subtask("na", "desc", Status.IN_PROGRESS, task1.getId(), LocalDateTime.MIN, Duration.ZERO);
         otherTask.setId(6);
         historyManager.add(otherTask);
         final List<Task> history = historyManager.getHistory();
@@ -51,7 +58,7 @@ class HistoryManagerTest {
 
     @Test
     public void shouldKeepInHistoryNotEditedVersionOfTask() {
-        Task task = new Task("Call mommy", "give a call", Status.NEW, TaskType.TASK);
+        Task task = new Task("Call mommy", "give a call", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         task.setId(1);
         historyManager.add(task);
 
@@ -73,8 +80,8 @@ class HistoryManagerTest {
 
     @Test
     void shouldKeepOrderOfTasks() {
-        Task task1 = new Task("Task 1", "Desc 1", Status.NEW, TaskType.TASK);
-        Task task2 = new Task("Task 2", "Desc 2", Status.IN_PROGRESS, TaskType.TASK);
+        Task task1 = new Task("Task 1", "Desc 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Task task2 = new Task("Task 2", "Desc 2", Status.IN_PROGRESS, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewTask(task1);
         taskManager.addNewTask(task2);
 
@@ -88,10 +95,10 @@ class HistoryManagerTest {
 
     @Test
     void shouldNotContainDuplicates() {
-        Task task = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
+        Task task = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         historyManager.add(task);
         historyManager.add(task);
-        Task task2 = new Task("Task 2", "Desc 2", Status.IN_PROGRESS, TaskType.TASK);
+        Task task2 = new Task("Task 2", "Desc 2", Status.IN_PROGRESS, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewTask(task2);
         taskManager.updateTask(task2);
         taskManager.getTaskById(task2.getId());
@@ -102,9 +109,9 @@ class HistoryManagerTest {
 
     @Test
     void shouldDeleteTaskFromMiddle() {
-        Task task1 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
-        Task task2 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
-        Task task3 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
+        Task task1 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Task task2 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Task task3 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewTask(task1);
         taskManager.addNewTask(task2);
         taskManager.addNewTask(task3);
@@ -122,9 +129,9 @@ class HistoryManagerTest {
 
     @Test
     void shouldDeleteTaskFromTail() {
-        Task task1 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
-        Task task2 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
-        Task task3 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
+        Task task1 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Task task2 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Task task3 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewTask(task1);
         taskManager.addNewTask(task2);
         taskManager.addNewTask(task3);
@@ -142,9 +149,9 @@ class HistoryManagerTest {
 
     @Test
     void shouldDeleteTaskFromHead() {
-        Task task1 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
-        Task task2 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
-        Task task3 = new Task("task", "Task 1", Status.NEW, TaskType.TASK);
+        Task task1 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Task task2 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
+        Task task3 = new Task("task", "Task 1", Status.NEW, LocalDateTime.MIN, Duration.ZERO);
         taskManager.addNewTask(task1);
         taskManager.addNewTask(task2);
         taskManager.addNewTask(task3);

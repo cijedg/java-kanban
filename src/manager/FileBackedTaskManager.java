@@ -22,6 +22,34 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.filename = filename;
     }
 
+    //строками заполняю менеджер
+    public static FileBackedTaskManager loadFromFile(File file) {
+        Path path = file.toPath();
+        FileBackedTaskManager manager = new FileBackedTaskManager(path);
+        List<Subtask> subtasks = new ArrayList<>();
+        try {
+            String content = Files.readString(path, StandardCharsets.UTF_8);
+            String[] lines = content.split("\n");
+            for (int i = 1; i < lines.length; i++) {
+                String line = lines[i];
+                if (line.isEmpty()) {
+                    continue;
+                }
+                Task task = Task.fromString(line);
+                switch (task.getType()) {
+                    case TASK -> manager.addNewTask(task);
+                    case SUBTASK -> subtasks.add((Subtask) task);
+                    case EPIC -> manager.addNewEpic((Epic) task);
+                }
+            }
+            subtasks.stream()
+                    .forEach(manager::addNewSubtask);
+        } catch (IOException e) {
+            throw new ManagerLoadException(e.getMessage());
+        }
+        return manager;
+    }
+
     //получаю мапы и записываю
     private void save() {
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(
@@ -125,35 +153,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 
-    //строками заполняю менеджер
-    public static FileBackedTaskManager loadFromFile(File file) {
-        Path path = file.toPath();
-        FileBackedTaskManager manager = new FileBackedTaskManager(path);
-        List<Subtask> subtasks = new ArrayList<>();
-        try {
-            String content = Files.readString(path, StandardCharsets.UTF_8);
-            String[] lines = content.split("\n");
-            for (int i = 1; i < lines.length; i++) {
-                String line = lines[i];
-                if (line.isEmpty()) {
-                    continue;
-                }
-                Task task = Task.fromString(line);
-                switch (task.getType()) {
-                    case TASK -> manager.addNewTask(task);
-                    case SUBTASK -> subtasks.add((Subtask) task);
-                    case EPIC -> manager.addNewEpic((Epic) task);
-                }
-            }
-            subtasks.stream()
-                    .forEach(manager::addNewSubtask);
-        } catch (IOException e) {
-            throw new ManagerLoadException(e.getMessage());
-        }
-        return manager;
-    }
-
     String toString(Task task) {
+
         if (task == null) {
             return "";
         }

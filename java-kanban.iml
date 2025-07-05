@@ -59,5 +59,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="google.code.gson" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="mockito.core" level="project" />
   </component>
 </module>
